@@ -16,17 +16,22 @@ from datetime import datetime
 PII_FIELDS = ("name", "email", "phone", "ssn", "password")
 
 
-def filter_datum(fields: List[str], redaction: str, message: str, separator: str) -> str:
-    """Returns the log message with specified fields obfuscated."""
+def filter_datum(
+        fields: List[str], redaction:
+        str, message: str, separator: str) -> str:
+    """Returns the log message with specified fields obfuscated.
+    """
     pattern = '|'.join([f'{field}=[^{separator}]*' for field in fields])
-    return re.sub(pattern, lambda x: x.group(0).split('=')[0] + '=' + redaction, message)
+    return re.sub(pattern, lambda x: x.group(0).split(
+        '=')[0] + '=' + redaction, message)
 
 
 class RedactingFormatter(logging.Formatter):
-    """Redacting Formatter class to obfuscate sensitive information."""
-
+    """Redacting Formatter class to obfuscate sensitive information.
+    """
     REDACTION = "***"
-    FORMAT = "[HOLBERTON] %(name)s %(levelname)s %(asctime)-15s: %(message)s"
+    FORMAT = "[HOLBERTON] %(name)s %(levelname)s"
+    "%(asctime)-15s: %(message)s"
     SEPARATOR = ";"
 
     def __init__(self, fields: List[str]):
@@ -37,7 +42,9 @@ class RedactingFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         """Filter sensitive data in the log record message."""
         original_message = super().format(record)
-        return filter_datum(self.fields, self.REDACTION, original_message, self.SEPARATOR)
+        return filter_datum(
+                self.fields, self.REDACTION, original_message, self.SEPARATOR)
+
 
 def get_logger() -> logging.Logger:
     """Creates and returns a logger named 'user_data'."""
@@ -55,9 +62,11 @@ def get_logger() -> logging.Logger:
 
     return logger
 
+
 def get_db() -> connection.MySQLConnection:
     """
-    Connects to a secure database and returns a MySQLConnection object.
+    Connects to a secure database and
+    returns a MySQLConnection object.
     """
     # Retrieve environment variables with defaults where applicable
     db_user = os.getenv('PERSONAL_DATA_DB_USERNAME', 'root')
@@ -67,7 +76,8 @@ def get_db() -> connection.MySQLConnection:
 
     # Ensure that the database name is provided
     if not db_name:
-        raise Exception("Environment variable PERSONAL_DATA_DB_NAME must be set.")
+        raise Exception(
+                "Environment variable PERSONAL_DATA_DB_NAME must be set.")
 
     # Establish and return the database connection
     return mysql.connector.connect(
@@ -76,6 +86,7 @@ def get_db() -> connection.MySQLConnection:
             host=db_host,
             database=db_name
             )
+
 
 def filter_data(row):
     """
@@ -93,33 +104,40 @@ def filter_data(row):
             }
     return filtered
 
+
 def main():
     """
-    Retrieves data from the users table, filters sensitive fields, and logs the results.
+    Logs the information about user records in a table.
     """
     db = get_db()
     cursor = db.cursor()
 
     # Execute query to retrieve all rows from the users table
-    cursor.execute("SELECT name, email, phone, ssn, password, ip, last_login, user_agent FROM users;")
+    cursor.execute(
+            "SELECT name, email, phone, ssn, password,"
+            "ip, last_login, user_agent FROM users;")
 
     # Set up logging format
-    logging.basicConfig(format='[HOLBERTON] user_data INFO %(asctime)s: %(message)s',
-            level=logging.INFO)
+    logging.basicConfig(
+            format='[HOLBERTON]'
+            'user_data INFO %(asctime)s: %(message)s', level=logging.INFO)
 
     # Fetch and process each row
     for row in cursor:
         filtered_row = filter_data(row)
-        log_message = (f"name={filtered_row['name']}; email={filtered_row['email']}; "
+        log_message = (
+                f"name={filtered_row['name']}; email={filtered_row['email']}; "
                 f"phone={filtered_row['phone']}; ssn={filtered_row['ssn']}; "
-                f"password={filtered_row['password']}; ip={filtered_row['ip']}; "
-                f"last_login={filtered_row['last_login']}; user_agent={filtered_row['user_agent']};")
+                f"password={filtered_row['password']};"
+                f"ip={filtered_row['ip']}; "
+                f"last_login={filtered_row['last_login']};"
+                f"user_agent={filtered_row['user_agent']};")
         logging.info(log_message)
 
         # Close cursor and database connection
         cursor.close()
         db.close()
 
-        
+
 if __name__ == "__main__":
     main()
