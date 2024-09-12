@@ -4,6 +4,7 @@ Module for filtering log data by obfuscating sensitive fields.
 """
 
 
+import logging
 import re
 from typing import List
 
