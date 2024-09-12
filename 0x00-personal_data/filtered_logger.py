@@ -4,6 +4,9 @@ Module for filtering log data by obfuscating sensitive fields.
 """
 
 
+import os
+import mysql.connector
+from mysql.connector import connection
 import logging
 import re
 from typing import List
@@ -49,3 +52,26 @@ def get_logger() -> logging.Logger:
     logger.addHandler(stream_handler)
 
     return logger
+
+def get_db() -> connection.MySQLConnection:
+    """
+    Connects to a secure database and returns a MySQLConnection object.
+    """
+    # Retrieve environment variables with defaults where applicable
+    db_user = os.getenv('PERSONAL_DATA_DB_USERNAME', 'root')
+    db_password = os.getenv('PERSONAL_DATA_DB_PASSWORD', '')
+    db_host = os.getenv('PERSONAL_DATA_DB_HOST', 'localhost')
+    db_name = os.getenv('PERSONAL_DATA_DB_NAME')
+
+    # Ensure that the database name is provided
+    if not db_name:
+        raise Exception("Environment variable PERSONAL_DATA_DB_NAME must be set.")
+
+    # Establish and return the database connection
+    return mysql.connector.connect(
+            user=db_user,
+            password=db_password,
+            host=db_host,
+            database=db_name
+            )
+
