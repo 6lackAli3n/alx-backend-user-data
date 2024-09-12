@@ -10,6 +10,8 @@ from mysql.connector import connection
 import logging
 import re
 from typing import List
+from datetime import datetime
+
 
 PII_FIELDS = ("name", "email", "phone", "ssn", "password")
 
@@ -75,3 +77,49 @@ def get_db() -> connection.MySQLConnection:
             database=db_name
             )
 
+def filter_data(row):
+    """
+    Masks sensitive data by replacing it with '***'.
+    """
+    filtered = {
+            'name': '***',
+            'email': '***',
+            'phone': '***',
+            'ssn': '***',
+            'password': '***',
+            'ip': row[5],
+            'last_login': row[6],
+            'user_agent': row[7]
+            }
+    return filtered
+
+def main():
+    """
+    Retrieves data from the users table, filters sensitive fields, and logs the results.
+    """
+    db = get_db()
+    cursor = db.cursor()
+
+    # Execute query to retrieve all rows from the users table
+    cursor.execute("SELECT name, email, phone, ssn, password, ip, last_login, user_agent FROM users;")
+
+    # Set up logging format
+    logging.basicConfig(format='[HOLBERTON] user_data INFO %(asctime)s: %(message)s',
+            level=logging.INFO)
+
+    # Fetch and process each row
+    for row in cursor:
+        filtered_row = filter_data(row)
+        log_message = (f"name={filtered_row['name']}; email={filtered_row['email']}; "
+                f"phone={filtered_row['phone']}; ssn={filtered_row['ssn']}; "
+                f"password={filtered_row['password']}; ip={filtered_row['ip']}; "
+                f"last_login={filtered_row['last_login']}; user_agent={filtered_row['user_agent']};")
+        logging.info(log_message)
+
+        # Close cursor and database connection
+        cursor.close()
+        db.close()
+
+        
+if __name__ == "__main__":
+    main()
