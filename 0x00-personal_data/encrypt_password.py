@@ -5,19 +5,18 @@
 
 import bcrypt
 
+
 def hash_password(password: str) -> bytes:
     """
-    Hash a password with bcrypt and return the salted, hashed password as a byte string.
-
-    Args:
+    Hash a password with bcrypt and return the salted.
+    Args:return bcrypt.checkpw(password.encode(), hashed_password)
     password (str): The plain text password to hash.
 
     Returns:
     bytes: The salted, hashed password.
     """
-    salt = bcrypt.gensalt()  # Generate a salt
-    hashed = bcrypt.hashpw(password.encode(), salt)  # Hash the password with the salt
-    return hashed
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
 
 def is_valid(hashed_password: bytes, password: str) -> bool:
     """
