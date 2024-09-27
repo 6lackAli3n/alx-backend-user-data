@@ -22,7 +22,7 @@ class DB:
     self._engine = create_engine("sqlite:///a.db", echo=True)
     Base.metadata.drop_all(self._engine)
     Base.metadata.create_all(self._engine)
-    self.__session = None
+    self.__session: Optional[Session] = None
 
     @property
     def _session(self) -> Session:
@@ -31,7 +31,7 @@ class DB:
         if self.__session is None:
             DBSession = sessionmaker(bind=self._engine)
             self.__session = DBSession()
-            return self.__session
+        return self.__session
 
     def add_user(self, email: str, hashed_password: str) -> User:
         """Add a user to the database.
