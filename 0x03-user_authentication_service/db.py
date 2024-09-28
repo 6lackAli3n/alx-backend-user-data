@@ -3,11 +3,14 @@
 """
 
 
+from sqlalchemy.exc import NoResultFound, InvalidRequestError
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
 from typing import Optional
+from typing import Dict
+
 
 from user import Base, User
 
@@ -46,3 +49,19 @@ class DB:
 
         # Return the User object
         return new_user
+
+    def find_user_by(self, **kwargs) -> User:
+        """Find a user by arbitrary keyword arguments.
+        """
+        try:
+            # Use SQLAlchemy's filter_by to search for the user
+            user = self._session.query(User).filter_by(**kwargs).first()
+
+            # If no user is found, raise NoResultFound
+            if user is None:
+                raise NoResultFound
+
+            return user
+        except AttributeError as e:
+            # This would occur if invalid attribute names are passed in **kwargs
+            raise InvalidRequestError from e
